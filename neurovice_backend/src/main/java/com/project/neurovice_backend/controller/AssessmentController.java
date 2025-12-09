@@ -27,4 +27,9 @@ public class AssessmentController {
     public AssessmentStatusResponse getStatus(@PathVariable Integer assessmentId) {
         return assessmentService.getStatus(assessmentId);
     }
+
+    @GetMapping("/{assessmentId}/diagnosis")
+    public DiagnosisResponse getDiagnosis(@PathVariable Integer assessmentId) {
+        return assessmentService.getDiagnosis(assessmentId);
+    }
 }

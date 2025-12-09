@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface questionairesRepository extends JpaRepository<questionaires, Long> {
     List<questionaires> findAllByIsActiveTrueOrderByDisplayOrder();
     Optional<questionaires> findBySectionId(String sectionId);
+    int countByIsActiveTrue();
 }

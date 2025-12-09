@@ -7,11 +7,15 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface assessmentSectionsRepository extends JpaRepository<assessment_sections, Long> {
-    @Query("SELECT COUNT(DISTINCT a.sectionId) FROM assessment_sections a WHERE a.assessmentId = :assessmentId")
+    @Query(value = "SELECT COUNT(DISTINCT section_id) FROM assessment_sections WHERE assessment_id = :assessmentId", nativeQuery = true)
     int countDistinctSectionsByAssessmentId(@Param("assessmentId") Integer assessmentId);
 
-    @Query("SELECT a.sectionId FROM assessment_sections a WHERE a.assessmentId = :assessmentId")
+    @Query(value = "SELECT section_id FROM assessment_sections WHERE assessment_id = :assessmentId", nativeQuery = true)
     List<String> findSectionIdsByAssessmentId(@Param("assessmentId") Integer assessmentId);
 
-    boolean existsByAssessmentIdAndSectionId(Integer assessmentId, String sectionId);
+    @Query(value = "SELECT * FROM assessment_sections WHERE assessment_id = :assessmentId", nativeQuery = true)
+    List<assessment_sections> findByAssessmentId(@Param("assessmentId") Integer assessmentId);
+
+    @Query(value = "SELECT EXISTS(SELECT 1 FROM assessment_sections WHERE assessment_id = :assessmentId AND section_id = :sectionId)", nativeQuery = true)
+    boolean existsByAssessmentIdAndSectionId(@Param("assessmentId") Integer assessmentId, @Param("sectionId") String sectionId);
 }

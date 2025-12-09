@@ -1,16 +1,12 @@
 package com.project.neurovice_backend.model;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+
+import jakarta.persistence.*;
 import lombok.Data;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.LocalDateTime;
 import java.util.Map;
-
 
 @Entity
 @Table(name = "assessment_sections")
@@ -18,18 +14,14 @@ import java.util.Map;
 public class assessment_sections {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long assessment_section_id;
+    @Column(name = "assessment_section_id")
+    private Long assessmentSectionId;
 
-    @ManyToOne
-    @JoinColumn(name = "assessment_id", nullable = false)
     @Column(name = "assessment_id", nullable = false)
-    private String assessmentID;
+    private Integer assessmentId;
 
-    @ManyToOne
-    @JoinColumn(name = "section_id", nullable = false)
     @Column(name = "section_id", nullable = false)
-    private String sectionID;
-
+    private String sectionId;
 
     @Column(name = "disorder_type", nullable = false)
     private String disorderType;
@@ -43,7 +35,7 @@ public class assessment_sections {
     @Column(name = "created_at", updatable = false, insertable = false)
     private LocalDateTime createdAt;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb", name = "question_response")
     private Map<String, Object> questionResponse;
-
 }

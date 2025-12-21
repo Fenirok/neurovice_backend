@@ -7,7 +7,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import lombok.Data;
 import jakarta.persistence.Column;
+import java.util.List;
 import java.util.Map;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "questionaires")
@@ -30,8 +33,9 @@ public class questionaires{
     @Column(name = "disorder_type", nullable = false)
     private String disorderType;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb", nullable = false)
-    private Map<String, Object> questions;
+    private List<Map<String, Object>> questions;
 
     @Column(name = "display_order")
     private Integer displayOrder;

@@ -1,5 +1,4 @@
 package com.project.neurovice_backend.service;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,18 +29,36 @@ public class AssessmentService {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
 
-    public StartAssessmentResponse startAssessment(Integer childId) {
-        if (!childRepository.existsById(Long.valueOf(childId))) {
-            throw new NotFoundException("Child not found");
-        }
-        assessment assessment = new assessment();
-        assessment.setChildId(childId);
-        assessment.setStatus("IN_PROGRESS");
-        assessment.setCreatedAt(LocalDateTime.now());
-        assessment = assessmentRepository.save(assessment);
-        return new StartAssessmentResponse(Math.toIntExact(assessment.getAssessmentId()));
+    // In AssessmentService.java
+
+    public StartAssessmentResponse getOrCreateAssessment(Integer childId) {
+    if (!childRepository.existsById(Long.valueOf(childId))) {
+        throw new NotFoundException("Child not found");
+    }
+    
+    return getActiveAssessment(childId)
+        .map(assessment -> new StartAssessmentResponse(Math.toIntExact(assessment.getAssessmentId())))
+        .orElseGet(() -> startAssessment(childId));
     }
 
+    private Optional<assessment> getActiveAssessment(Integer childId) {
+        List<String> activeStatuses = List.of(
+                "IN_PROGRESS",
+                "QUESTIONNAIRE_COMPLETED",
+                "GAME_COMPLETED",
+                "COMPLETED" // legacy compatibility
+        );
+        return assessmentRepository.findTop1ByChildIdAndStatusInOrderByCreatedAtDesc(childId, activeStatuses);
+    }
+
+    private StartAssessmentResponse startAssessment(Integer childId) {
+    assessment assessment = new assessment();
+    assessment.setChildId(childId);
+    assessment.setStatus("IN_PROGRESS");
+    assessment.setCreatedAt(LocalDateTime.now());
+    assessment = assessmentRepository.save(assessment);
+    return new StartAssessmentResponse(Math.toIntExact(assessment.getAssessmentId()));
+    }
     @Transactional
     public SectionSubmitResponse submitSection(Integer assessmentId, SectionSubmitRequest request) {
         assessment assessment = assessmentRepository.findById(Long.valueOf(assessmentId))
@@ -100,12 +117,11 @@ public class AssessmentService {
         int requiredSections = questionnaireService.countActiveSections();
 
         boolean allSectionsCompleted = submittedSections >= requiredSections;
-        if (allSectionsCompleted && !"COMPLETED".equals(assessment.getStatus())) {
-            assessment.setStatus("COMPLETED");
+        if (allSectionsCompleted && !"QUESTIONNAIRE_COMPLETED".equals(assessment.getStatus())) {
+            assessment.setStatus("QUESTIONNAIRE_COMPLETED");
             assessment.setCompletedAt(LocalDateTime.now());
             assessmentRepository.save(assessment);
-            // Compute Vanderbilt diagnosis after all sections are completed
-            computeDiagnosis(assessmentId, assessment.getChildId());
+            // No diagnosis computation here - will happen after game completion
         }
 
         return new SectionSubmitResponse(true, allSectionsCompleted);
@@ -222,6 +238,39 @@ public class AssessmentService {
 
         return allAnswers;
     }
+
+    /* 
+    public AiDiagnosisResponse getAiDiagnosis(Integer assessmentId) {
+
+        QuestionnaireMetrics q = questionnaireMetricsRepository
+            .getAveragedScores(assessmentId);
+    
+        GameMetrics g = gameMetricsRepository
+            .getMetrics(assessmentId);
+    
+        double inattention =
+            0.6 * q.getInattentionAvg() +
+            0.4 * g.getInattentionScore();
+    
+        double hyperactivity =
+            0.6 * q.getHyperactivityAvg() +
+            0.4 * g.getHyperactivityScore();
+    
+        Map<String, Double> aiInput = Map.of(
+            "inattention", inattention,
+            "hyperactivity", hyperactivity,
+            "odd", q.getOddAvg(),
+            "conduct", q.getConductAvg(),
+            "anxiety_depression", q.getAnxietyAvg(),
+            "performance", q.getPerformanceAvg()
+        );
+    
+        double risk = aiService.getAdhdRisk(aiInput);
+    
+        return new AiDiagnosisResponse(risk, classifyRisk(risk));
+    }
+    */
+    
 
     /**
      * Counts questions in range [start, end] where answer equals target1 OR target2.

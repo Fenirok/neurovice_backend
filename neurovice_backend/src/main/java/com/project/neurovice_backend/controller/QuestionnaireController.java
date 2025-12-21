@@ -7,12 +7,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/questionnaires")
+@RequestMapping("/api/questionaires")
 @RequiredArgsConstructor
 public class QuestionnaireController {
     private final QuestionnaireService questionnaireService;
 
-    @GetMapping
+    @GetMapping("/getallquestionaires")
     public List<questionaires> getAll() {
         return questionnaireService.getActiveSections();
     }

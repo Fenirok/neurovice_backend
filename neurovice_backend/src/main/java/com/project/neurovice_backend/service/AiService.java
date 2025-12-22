@@ -2,6 +2,7 @@ package com.project.neurovice_backend.service;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -12,8 +13,18 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class AiService {
 
-    private static final String AI_URL = "https://neurovice-ml.onrender.com/predict";
-    private final RestTemplate restTemplate = new RestTemplate();
+    // private static final String AI_URL = "https://neurovice-ml.onrender.com/predict";
+    // private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+    private final String aiServiceUrl;
+
+    public AiService(
+            RestTemplate restTemplate,
+            @Value("${ai.service.url}") String aiServiceUrl
+    ) {
+        this.restTemplate = restTemplate;
+        this.aiServiceUrl = aiServiceUrl;
+    }
 
     public Double getAdhdRisk(Map<String, Object> aiFeatures) {
 
@@ -24,7 +35,7 @@ public class AiService {
                 = new HttpEntity<>(aiFeatures, headers);
 
         ResponseEntity<Map> response
-                = restTemplate.postForEntity(AI_URL, request, Map.class);
+                = restTemplate.postForEntity(aiServiceUrl, request, Map.class);
 
         Object v = response.getBody().get("risk");
         if (v == null) {

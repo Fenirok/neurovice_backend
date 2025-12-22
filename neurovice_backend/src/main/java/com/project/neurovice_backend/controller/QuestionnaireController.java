@@ -13,6 +13,7 @@ public class QuestionnaireController {
     private final QuestionnaireService questionnaireService;
 
     @GetMapping("/getallquestionaires")
+    //@GetMapping("/getallquestionnaires")
     public List<questionaires> getAll() {
         return questionnaireService.getActiveSections();
     }

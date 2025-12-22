@@ -14,18 +14,20 @@ public class AiService {
     private static final String AI_URL = "http://localhost:8000/predict";
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public Double getAdhdRisk(Map<String, Double> aiFeatures) {
+    public Double getAdhdRisk(Map<String, Object> aiFeatures) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<Map<String, Double>> request =
+        HttpEntity<Map<String, Object>> request =
                 new HttpEntity<>(aiFeatures, headers);
 
         ResponseEntity<Map> response =
                 restTemplate.postForEntity(AI_URL, request, Map.class);
 
-        return ((Number) response.getBody()
-                .get("adhd_risk_percent")).doubleValue();
+        Object v = response.getBody().get("risk");
+        if (v == null) v = response.getBody().get("adhd_risk");
+        if (v == null) v = response.getBody().get("adhd_risk_percent");
+        return v == null ? null : ((Number) v).doubleValue();
     }
 }

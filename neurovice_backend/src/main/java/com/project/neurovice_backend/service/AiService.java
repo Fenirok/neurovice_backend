@@ -13,8 +13,6 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class AiService {
 
-    // private static final String AI_URL = "https://neurovice-ml.onrender.com/predict";
-    // private final RestTemplate restTemplate = new RestTemplate();
     private final RestTemplate restTemplate;
     private final String aiServiceUrl;
 
@@ -37,13 +35,11 @@ public class AiService {
         ResponseEntity<Map> response
                 = restTemplate.postForEntity(aiServiceUrl, request, Map.class);
 
-        Object v = response.getBody().get("risk");
-        if (v == null) {
-            v = response.getBody().get("adhd_risk");
+        if (response.getBody() == null) {
+            return null;
         }
-        if (v == null) {
-            v = response.getBody().get("adhd_risk_percent");
-        }
-        return v == null ? null : ((Number) v).doubleValue();
+
+        Object risk = response.getBody().get("adhd_risk_percent");
+        return risk == null ? null : ((Number) risk).doubleValue();
     }
 }

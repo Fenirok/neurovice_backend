@@ -12,7 +12,7 @@ import java.util.List;
 public class QuestionnaireController {
     private final QuestionnaireService questionnaireService;
 
-    @GetMapping
+    @GetMapping("/getallquestionnaires")
     public List<questionaires> getAll() {
         return questionnaireService.getActiveSections();
     }

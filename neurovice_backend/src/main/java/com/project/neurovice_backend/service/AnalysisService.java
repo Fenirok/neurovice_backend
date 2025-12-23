@@ -1,14 +1,16 @@
 package com.project.neurovice_backend.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
 import com.project.neurovice_backend.dto.AnalysisResponse;
 import com.project.neurovice_backend.exception.NotFoundException;
 import com.project.neurovice_backend.model.ChildFinalMetricsEntity;
 import com.project.neurovice_backend.repository.ChildFinalMetricsRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +31,7 @@ public class AnalysisService {
         features.put("anxiety_index", nz(metrics.getAnxietyIndex()));
         features.put("conduct_index", nz(metrics.getConductIndex()));
         features.put("odd_index", nz(metrics.getOddIndex()));
-        features.put("session_count", metrics.getSessionCount());
+        // features.put("session_count", metrics.getSessionCount());
 
         Double risk = aiService.getAdhdRisk(features);
         double r = risk == null ? 0.0 : risk;

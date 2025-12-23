@@ -1,15 +1,29 @@
 package com.project.neurovice_backend.controller;
 
-import com.project.neurovice_backend.dto.*;
-import com.project.neurovice_backend.service.AssessmentService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.project.neurovice_backend.dto.AssessmentStatusResponse;
+import com.project.neurovice_backend.dto.DiagnosisResponse;
+import com.project.neurovice_backend.dto.SectionSubmitRequest;
+import com.project.neurovice_backend.dto.SectionSubmitResponse;
+import com.project.neurovice_backend.dto.StartAssessmentRequest;
+import com.project.neurovice_backend.dto.StartAssessmentResponse;
+import com.project.neurovice_backend.service.AssessmentService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/assessment")
 @RequiredArgsConstructor
 public class AssessmentController {
+
     private final AssessmentService assessmentService;
 
     @PostMapping("/start")

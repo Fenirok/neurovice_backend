@@ -10,9 +10,9 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "game_metrics")
+@Table(name = "adhd_raw_game_metrics")
 @Data
-public class GameMetricsEntity {
+public class ADHDRawGameMetrics {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.project.neurovice_backend.user.dto.GameDataRequest;
-import com.project.neurovice_backend.user.model.GameMetricsEntity;
+import com.project.neurovice_backend.user.model.ADHDRawGameMetrics;
 import com.project.neurovice_backend.user.repository.GameMetricsRepository;
 
 @Service
@@ -22,7 +22,7 @@ public class GameMetricsService {
 
     public void processAndStore(GameDataRequest dto) {
 
-        GameMetricsEntity entity = new GameMetricsEntity();
+        ADHDRawGameMetrics entity = new ADHDRawGameMetrics();
 
         // SET IDENTIFIERS FIRST
         entity.setChildId(1L);
@@ -144,7 +144,7 @@ public class GameMetricsService {
     }
 
     // ===== METRIC CALCULATIONS =====
-    private double calculateHyperactivity(GameMetricsEntity entity) {
+    private double calculateHyperactivity(ADHDRawGameMetrics entity) {
         double spam = entity.getSpamIntensity();
         double burst = entity.getBurstIntensity();
         double direction = entity.getDirectionChangeRate();
@@ -156,7 +156,7 @@ public class GameMetricsService {
                 + 0.15 * holdImpulsivity;
     }
 
-    private double calculateInattention(GameMetricsEntity entity) {
+    private double calculateInattention(ADHDRawGameMetrics entity) {
 
         return 0.45 * (1.0 - entity.getAccuracy())
                 + 0.35 * entity.getAttentionDecay()
@@ -164,13 +164,13 @@ public class GameMetricsService {
     }
 
     // ===== EXTENDED BEHAVIORAL INDICES =====
-    private double calculateADHDComposite(GameMetricsEntity entity) {
+    private double calculateADHDComposite(ADHDRawGameMetrics entity) {
 
         return 0.5 * entity.getHyperactivity()
                 + 0.5 * entity.getInattention();
     }
 
-    private double calculateODDIndex(GameMetricsEntity entity) {
+    private double calculateODDIndex(ADHDRawGameMetrics entity) {
 
         return 0.30 * entity.getBurstIntensity()
                 + 0.30 * entity.getDirectionChangeRate()
@@ -178,14 +178,14 @@ public class GameMetricsService {
                 + 0.15 * (1.0 - entity.getAccuracy());
     }
 
-    private double calculateConductIndex(GameMetricsEntity entity) {
+    private double calculateConductIndex(ADHDRawGameMetrics entity) {
 
         return 0.40 * (1.0 - entity.getAccuracy())
                 + 0.35 * entity.getRandomness()
                 + 0.25 * entity.getSpamIntensity();
     }
 
-    private double calculateAnxietyIndex(GameMetricsEntity entity) {
+    private double calculateAnxietyIndex(ADHDRawGameMetrics entity) {
 
         return 0.30 * entity.getAttentionDecay()
                 + 0.25 * (1.0 - entity.getSpamIntensity())
@@ -193,7 +193,7 @@ public class GameMetricsService {
                 + 0.25 * entity.getInattention();
     }
 
-    private void logMetrics(GameMetricsEntity e) {
+    private void logMetrics(ADHDRawGameMetrics e) {
         System.out.println(
                 "Saved metrics for childId = " + e.getChildId()
                 + ", gameId = " + e.getGameId()

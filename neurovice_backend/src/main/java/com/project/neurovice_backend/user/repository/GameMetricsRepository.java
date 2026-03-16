@@ -5,10 +5,10 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.project.neurovice_backend.user.model.GameMetricsEntity;
+import com.project.neurovice_backend.user.model.ADHDRawGameMetrics;
 
 @Repository
-public interface GameMetricsRepository extends JpaRepository<GameMetricsEntity, Long> {
+public interface GameMetricsRepository extends JpaRepository<ADHDRawGameMetrics, Long> {
 
-    List<GameMetricsEntity> findByChildIdOrderByCreatedAtAsc(Long childId);
+    List<ADHDRawGameMetrics> findByChildIdOrderByCreatedAtAsc(Long childId);
 }

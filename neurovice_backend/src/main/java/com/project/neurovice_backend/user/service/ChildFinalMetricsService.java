@@ -9,13 +9,13 @@ import java.util.function.Function;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.project.neurovice_backend.user.model.ADHDFinalMetrics;
+import com.project.neurovice_backend.user.model.ADHDRawGameMetrics;
+import com.project.neurovice_backend.user.model.assessment_sections;
 import com.project.neurovice_backend.user.repository.ChildFinalMetricsRepository;
 import com.project.neurovice_backend.user.repository.GameMetricsRepository;
 import com.project.neurovice_backend.user.repository.assessmentRepository;
 import com.project.neurovice_backend.user.repository.assessmentSectionsRepository;
-import com.project.neurovice_backend.user.model.ChildFinalMetricsEntity;
-import com.project.neurovice_backend.user.model.GameMetricsEntity;
-import com.project.neurovice_backend.user.model.assessment_sections;
 
 @Service
 public class ChildFinalMetricsService {
@@ -44,7 +44,7 @@ public class ChildFinalMetricsService {
     public void computeAndStoreFinalMetrics(Long childId) {
 
         // Fetch all game sessions for child
-        List<GameMetricsEntity> sessions
+        List<ADHDRawGameMetrics> sessions
                 = gameMetricsRepository.findByChildIdOrderByCreatedAtAsc(childId);
 
         if (sessions.isEmpty()) {
@@ -52,10 +52,10 @@ public class ChildFinalMetricsService {
         }
 
         // Latest session
-        GameMetricsEntity latest = sessions.get(sessions.size() - 1);
+        ADHDRawGameMetrics latest = sessions.get(sessions.size() - 1);
 
         // Historical sessions (exclude latest)
-        List<GameMetricsEntity> history
+        List<ADHDRawGameMetrics> history
                 = sessions.subList(0, sessions.size() - 1);
 
         // Fetch questionnaire scores
@@ -69,44 +69,44 @@ public class ChildFinalMetricsService {
         double finalInattention = calculateFinalMetric(
                 questionnaireScores.get("INATTENTION"),
                 latest.getInattention(),
-                average(history, GameMetricsEntity::getInattention)
+                average(history, ADHDRawGameMetrics::getInattention)
         );
 
         double finalHyperactivity = calculateFinalMetric(
                 questionnaireScores.get("HYPERACTIVITY"),
                 latest.getHyperactivity(),
-                average(history, GameMetricsEntity::getHyperactivity)
+                average(history, ADHDRawGameMetrics::getHyperactivity)
         );
 
         double finalADHD = calculateFinalMetric(
                 questionnaireScores.get("ADHD"),
                 latest.getAdhdComposite(),
-                average(history, GameMetricsEntity::getAdhdComposite)
+                average(history, ADHDRawGameMetrics::getAdhdComposite)
         );
 
         double finalODD = calculateFinalMetric(
                 questionnaireScores.get("ODD"),
                 latest.getOddIndex(),
-                average(history, GameMetricsEntity::getOddIndex)
+                average(history, ADHDRawGameMetrics::getOddIndex)
         );
 
         double finalConduct = calculateFinalMetric(
                 questionnaireScores.get("CONDUCT"),
                 latest.getConductIndex(),
-                average(history, GameMetricsEntity::getConductIndex)
+                average(history, ADHDRawGameMetrics::getConductIndex)
         );
 
         double finalAnxiety = calculateFinalMetric(
                 questionnaireScores.get("ANXIETY"),
                 latest.getAnxietyIndex(),
-                average(history, GameMetricsEntity::getAnxietyIndex)
+                average(history, ADHDRawGameMetrics::getAnxietyIndex)
         );
 
         // Insert or update final metrics table
-        ChildFinalMetricsEntity entity
+        ADHDFinalMetrics entity
                 = childFinalMetricsRepository
                         .findByChildId(childId)
-                        .orElse(new ChildFinalMetricsEntity());
+                        .orElse(new ADHDFinalMetrics());
 
         entity.setChildId(childId);
         entity.setGameId("ADHD"); // fixed for now
@@ -185,8 +185,8 @@ public class ChildFinalMetricsService {
     // HISTORY AVERAGE HELPER
     // ============================
     private double average(
-            List<GameMetricsEntity> list,
-            Function<GameMetricsEntity, Double> extractor) {
+            List<ADHDRawGameMetrics> list,
+            Function<ADHDRawGameMetrics, Double> extractor) {
 
         if (list == null || list.isEmpty()) {
             return 0.0;
@@ -195,7 +195,7 @@ public class ChildFinalMetricsService {
         double sum = 0.0;
         int count = 0;
 
-        for (GameMetricsEntity e : list) {
+        for (ADHDRawGameMetrics e : list) {
             Double value = extractor.apply(e);
             if (value != null) {
                 sum += value;
@@ -206,7 +206,7 @@ public class ChildFinalMetricsService {
         return count == 0 ? 0.0 : sum / count;
     }
 
-    private void logMetrics(ChildFinalMetricsEntity e) {
+    private void logMetrics(ADHDFinalMetrics e) {
         System.out.println("Computed Game Metrics for Child ID: " + e.getChildId());
         System.out.println("Hyperactivity: " + e.getHyperactivity());
         System.out.println("Inattention: " + e.getInattention());

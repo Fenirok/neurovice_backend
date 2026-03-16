@@ -13,13 +13,13 @@ import lombok.Data;
 
 @Entity
 @Table(
-        name = "child_final_metrics",
+        name = "adhd_final_metrics",
         uniqueConstraints = {
             @UniqueConstraint(columnNames = "child_id")
         }
 )
 @Data
-public class ChildFinalMetricsEntity {
+public class ADHDFinalMetrics {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.project.neurovice_backend.user.dto.AnalysisResponse;
 import com.project.neurovice_backend.user.exception.NotFoundException;
+import com.project.neurovice_backend.user.model.ADHDFinalMetrics;
 import com.project.neurovice_backend.user.repository.ChildFinalMetricsRepository;
-import com.project.neurovice_backend.user.model.ChildFinalMetricsEntity;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +20,7 @@ public class AnalysisService {
     private final AiService aiService;
 
     public AnalysisResponse run(Long childId) {
-        ChildFinalMetricsEntity metrics = childFinalMetricsRepository
+        ADHDFinalMetrics metrics = childFinalMetricsRepository
                 .findByChildId(childId)
                 .orElseThrow(() -> new NotFoundException("Final metrics not found for child"));
 

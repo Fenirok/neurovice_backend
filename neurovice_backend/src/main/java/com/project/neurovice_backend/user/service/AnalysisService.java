@@ -37,6 +37,13 @@ public class AnalysisService {
         features.put("odd_index", nz(metrics.getOddIndex()));
         // features.put("session_count", metrics.getSessionCount());
 
+        System.out.println("ADHD Composite: " + metrics.getAdhdComposite());
+        System.out.println("Inattention: " + metrics.getInattention());
+        System.out.println("Hyperactivity: " + metrics.getHyperactivity());
+        System.out.println("Anxiety Index: " + metrics.getAnxietyIndex());
+        System.out.println("Conduct Index: " + metrics.getConductIndex());
+        System.out.println("ODD Index: " + metrics.getOddIndex());
+
         Double risk = aiService.getAdhdRisk(features);
         System.out.println("Risk returned from AI service: " + risk);
         double r = risk == null ? 0.0 : risk;

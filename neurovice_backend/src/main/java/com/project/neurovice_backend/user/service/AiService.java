@@ -39,7 +39,10 @@ public class AiService {
             return null;
         }
 
-        Object risk = response.getBody().get("adhd_risk_percent");
+        System.out.println("AI Service HTTP Status: " + response.getStatusCode());
+        System.out.println("AI Service Response: " + response.getBody());
+
+        Object risk = response.getBody().get("adhd_risk_score");
         return risk == null ? null : ((Number) risk).doubleValue();
     }
 }

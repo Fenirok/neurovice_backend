@@ -1,4 +1,4 @@
-package com.project.neurovice_backend.user.controller;
+package com.project.neurovice_backend.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

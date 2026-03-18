@@ -1,10 +1,15 @@
-package com.project.neurovice_backend.user.controller;
+package com.project.neurovice_backend.controller;
+
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.project.neurovice_backend.user.dto.CreateChildRequest;
 import com.project.neurovice_backend.user.dto.CreateChildResponse;
 import com.project.neurovice_backend.user.service.ChildService;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/child")

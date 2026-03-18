@@ -10,4 +10,9 @@ public class TestController {
     public String test() {
         return "API is working";
     }
+
+    @GetMapping("/")
+    public String home() {
+        return "BACKEND IS HIT";
+    }
 }

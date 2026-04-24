@@ -51,7 +51,7 @@ public class OtpServiceImpl implements OtpService {
 
     @Override
     public boolean verifyOtp(String email, String otp) {
-        Optional<OtpEntity> optional = otpRepository.findLatestByEmail(email);
+        Optional<OtpEntity> optional = otpRepository.findTopByEmailOrderByCreatedAtDesc(email);
 
         if (optional.isEmpty()) {
             return false;

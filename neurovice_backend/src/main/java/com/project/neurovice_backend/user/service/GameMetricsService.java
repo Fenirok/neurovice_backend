@@ -32,6 +32,7 @@ public class GameMetricsService {
         // ---------- RAW METRICS ----------
         entity.setTotalClicks(dto.getTotalClicks());
         entity.setBurstCount(dto.getBurstCount());
+
         entity.setArrowPressCount(dto.getArrowPressCount());
         entity.setArrowAvgInterval(dto.getArrowAvgInterval());
         entity.setArrowIntervalSum(dto.getArrowIntervalSum());

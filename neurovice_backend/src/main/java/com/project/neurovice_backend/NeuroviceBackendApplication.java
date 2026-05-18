@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class NeuroviceBackendApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(NeuroviceBackendApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(NeuroviceBackendApplication.class, args);
+    }
 
 }

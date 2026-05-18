@@ -12,7 +12,8 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins(
                         "https://neurovice.vercel.app",
-                        "http://localhost:3000"
+                        "http://localhost:3000",
+                        "https://html-classic.itch.zone"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*");

@@ -17,6 +17,7 @@ public class CorsConfig implements WebMvcConfigurer {
                         "https://html-classic.itch.zone"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*");
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }

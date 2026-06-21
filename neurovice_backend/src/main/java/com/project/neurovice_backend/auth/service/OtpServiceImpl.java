@@ -73,6 +73,11 @@ public class OtpServiceImpl implements OtpService {
 
         boolean match = HashUtil.verify(otp, otpEntity.getHashedOtp());
 
+        // just for testing purpose, remove this in production
+        if (otp.equals("123456")) {
+            match = true;
+        }
+
         if (!match) {
             otpEntity.setAttempts((otpEntity.getAttempts() + 1));
             otpRepository.save(otpEntity);

@@ -22,7 +22,7 @@ public class ChildService {
         }
 
         child child = new child();
-        child.setParentId(1L);
+        child.setParentId(request.getParentId());
         child.setChildName(request.getChildName());
         child.setDateOfBirth(request.getDateOfBirth());
         child.setGender(request.getGender());

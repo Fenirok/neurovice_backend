@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class CreateChildRequest {
 
+    private Long parentId;
     private String childName;
     private LocalDate dateOfBirth;
     private String gender;

@@ -15,20 +15,24 @@ public class users {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long parent_id;
+    @Column(name = "parent_id")
+    private Long parentId;
 
     @Column(name = "user_name", nullable = false)
     private String username;
 
     @Column(name = "email_address", nullable = false, unique = true)
-    private String email_address;
+    private String emailAddress;
 
     @Column(name = "whatsapp_number", nullable = false, unique = true)
-    private String whatsapp_number;
+    private String whatsappNumber;
 
     @Column(name = "address", nullable = true)
     private String address;
 
+    @Column(name = "relation_with_child", nullable = false, length = 20)
+    private String relationWithChild;
+
     @Column(name = "addhaar_id", nullable = false, unique = true)
-    private String addhaar_id;
+    private String addhaarId;
 }

@@ -8,5 +8,6 @@ public class CreateUserRequest {
     private String email;
     private String whatsappNumber;
     private String address;
+    private String relationWithChild;
     private String aadhaarId;
 }

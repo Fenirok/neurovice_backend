@@ -1,22 +1,37 @@
 package com.project.neurovice_backend.user.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.neurovice_backend.user.dto.*;
-import com.project.neurovice_backend.user.exception.BadRequestException;
-import com.project.neurovice_backend.user.exception.NotFoundException;
-import com.project.neurovice_backend.user.repository.*;
-import com.project.neurovice_backend.user.model.*;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.neurovice_backend.user.dto.AssessmentStatusResponse;
+import com.project.neurovice_backend.user.dto.SectionSubmitRequest;
+import com.project.neurovice_backend.user.dto.SectionSubmitResponse;
+import com.project.neurovice_backend.user.dto.StartAssessmentResponse;
+import com.project.neurovice_backend.user.exception.BadRequestException;
+import com.project.neurovice_backend.user.exception.NotFoundException;
+import com.project.neurovice_backend.user.model.QuestionnaireMetrics;
+import com.project.neurovice_backend.user.model.assessment;
+import com.project.neurovice_backend.user.model.assessment_sections;
+import com.project.neurovice_backend.user.model.questionaires;
+import com.project.neurovice_backend.user.repository.QuestionnaireMetricsRepository;
+import com.project.neurovice_backend.user.repository.assessmentRepository;
+import com.project.neurovice_backend.user.repository.assessmentSectionsRepository;
+import com.project.neurovice_backend.user.repository.childRepository;
+import com.project.neurovice_backend.user.repository.questionairesRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -146,7 +161,7 @@ public class AssessmentService {
     /**
      * Retrieves the diagnosis results for a completed assessment.
      */
-    public DiagnosisResponse getDiagnosis(Integer assessmentId) {
+    /* public DiagnosisResponse getDiagnosis(Integer assessmentId) {
         QuestionnaireMetrics metrics = questionnaireMetricsRepository
                 .findByAssessmentId(assessmentId)
                 .orElseThrow(() -> new NotFoundException("Diagnosis not found for this assessment. Assessment may not be completed yet."));
@@ -159,8 +174,7 @@ public class AssessmentService {
                 metrics.getConduct() == 1,
                 metrics.getAnxietyDepression() == 1
         );
-    }
-
+    } */
     /**
      * Computes Vanderbilt diagnosis based on official scoring rules from page
      * 10. Called automatically when all sections are completed.
@@ -177,16 +191,15 @@ public class AssessmentService {
         int anxDepCount = countScores(answers, 41, 47, 2, 3); // Q41-Q47: 3+ required
 
         // Check performance questions (Q48-Q55): any score 4 or 5 indicates impairment
-        boolean performanceFlag = hasPerformanceIssues(answers);
+        int performanceFlag = countScores(answers, 48, 55, 4, 5);
 
         // Apply Vanderbilt criteria
-        boolean inattentive = (inattentionCount >= 6 && performanceFlag);
-        boolean hyperactive = (hyperactivityCount >= 6 && performanceFlag);
-        boolean combined = (inattentive && hyperactive);
-        boolean odd = (oddCount >= 4 && performanceFlag);
-        boolean conduct = (conductCount >= 3 && performanceFlag);
-        boolean anxietyDepression = (anxDepCount >= 3 && performanceFlag);
-
+        // boolean inattentive = (inattentionCount >= 6 && performanceFlag);
+        // boolean hyperactive = (hyperactivityCount >= 6 && performanceFlag);
+        // boolean combined = (inattentive && hyperactive);
+        // boolean odd = (oddCount >= 4 && performanceFlag);
+        // boolean conduct = (conductCount >= 3 && performanceFlag);
+        // boolean anxietyDepression = (anxDepCount >= 3 && performanceFlag);
         // Save or update metrics
         QuestionnaireMetrics metrics = questionnaireMetricsRepository
                 .findByAssessmentId(assessmentId)
@@ -194,12 +207,13 @@ public class AssessmentService {
 
         metrics.setAssessmentId(assessmentId);
         metrics.setChildId(childId);
-        metrics.setInattention(inattentive ? 1 : 0);
-        metrics.setHyperactivity(hyperactive ? 1 : 0);
-        metrics.setCombined(combined ? 1 : 0);
-        metrics.setOdd(odd ? 1 : 0);
-        metrics.setConduct(conduct ? 1 : 0);
-        metrics.setAnxietyDepression(anxietyDepression ? 1 : 0);
+        metrics.setInattention(inattentionCount);
+        metrics.setHyperactivity(hyperactivityCount);
+        // metrics.setCombined(combined);
+        metrics.setOdd(oddCount);
+        metrics.setConduct(conductCount);
+        metrics.setAnxietyDepression(anxDepCount);
+        metrics.setPerformanceFlag(performanceFlag);
 
         questionnaireMetricsRepository.save(metrics);
     }

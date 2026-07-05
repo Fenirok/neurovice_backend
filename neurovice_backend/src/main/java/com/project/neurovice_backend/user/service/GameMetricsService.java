@@ -100,17 +100,22 @@ public class GameMetricsService {
             return 0.0;
         }
 
-        // Calculate drop from minute 1 to minute 2
-        double drop1 = Math.max(0.0, (double) (early - mid) / early);
+        // 1. Calculate the absolute drop in volume, not just the percentage
+        double drop1 = Math.max(0, early - mid);
+        double drop2 = Math.max(0, mid - late);
 
-        // Calculate drop from minute 2 to minute 3 
-        // (We use 'early' as the denominator to keep the scale consistent)
-        double drop2 = Math.max(0.0, (double) (mid - late) / early);
+        // 2. Weight the drops. An early drop (minute 1 to 2) is a stronger 
+        // indicator of poor sustained attention than a late drop (minute 2 to 3) 
+        // where normal fatigue sets in.
+        double weightedDrop = (drop1 * 1.0) + (drop2 * 0.5);
 
-        // Total decay is the sum of the sequential drops
-        double totalDecay = drop1 + drop2;
+        // 3. Normalize it against the "maximum possible weighted drop" 
+        // (which would happen if they scored 'early' and then 0, 0)
+        double maxPossibleWeightedDrop = (early * 1.0) + (0 * 0.5);
 
-        return Math.min(1.0, totalDecay); // Cap at 1.0 (100% decay)
+        double finalDecay = weightedDrop / maxPossibleWeightedDrop;
+
+        return Math.min(1.0, finalDecay);
     }
 
     private double calculateArrowRandomness(GameDataRequest dto) {

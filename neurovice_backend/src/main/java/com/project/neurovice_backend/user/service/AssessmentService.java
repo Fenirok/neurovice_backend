@@ -184,11 +184,11 @@ public class AssessmentService {
         Map<Integer, Integer> answers = loadAllQuestionAnswers(assessmentId);
 
         // Count scores (2 or 3) for each disorder category
-        int inattentionCount = countScores(answers, 1, 9, 2, 3); // Q1-Q9: 6+ required
-        int hyperactivityCount = countScores(answers, 10, 18, 2, 3); // Q10-Q18: 6+ required
-        int oddCount = countScores(answers, 19, 26, 2, 3); // Q19-Q26: 4+ required
-        int conductCount = countScores(answers, 27, 40, 2, 3); // Q27-Q40: 3+ required
-        int anxDepCount = countScores(answers, 41, 47, 2, 3); // Q41-Q47: 3+ required
+        int inattentionCount = countScores(answers, 1, 9, 4, 5); // Q1-Q9: 6+ required
+        int hyperactivityCount = countScores(answers, 10, 18, 4, 5); // Q10-Q18: 6+ required
+        int oddCount = countScores(answers, 19, 26, 4, 5); // Q19-Q26: 4+ required
+        int conductCount = countScores(answers, 27, 40, 4, 5); // Q27-Q40: 3+ required
+        int anxDepCount = countScores(answers, 41, 47, 4, 5); // Q41-Q47: 3+ required
 
         // Check performance questions (Q48-Q55): any score 4 or 5 indicates impairment
         int performanceFlag = countScores(answers, 48, 55, 4, 5);

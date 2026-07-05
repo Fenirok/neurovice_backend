@@ -102,7 +102,7 @@ public class GameMetricsService {
 
         // Calculate drop from minute 1 to minute 2
         double drop1 = Math.max(0.0, (double) (early - mid) / early);
-        
+
         // Calculate drop from minute 2 to minute 3 
         // (We use 'early' as the denominator to keep the scale consistent)
         double drop2 = Math.max(0.0, (double) (mid - late) / early);

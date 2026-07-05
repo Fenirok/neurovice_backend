@@ -93,13 +93,24 @@ public class GameMetricsService {
     private double calculateAttentionDecay(GameDataRequest dto) {
 
         int early = dto.getScore_0_60();
+        int mid = dto.getScore_60_120();
         int late = dto.getScore_120_180();
 
         if (early == 0) {
             return 0.0;
         }
 
-        return (double) (early - late) / early;
+        // Calculate drop from minute 1 to minute 2
+        double drop1 = Math.max(0.0, (double) (early - mid) / early);
+
+        // Calculate drop from minute 2 to minute 3 
+        // (We use 'early' as the denominator to keep the scale consistent)
+        double drop2 = Math.max(0.0, (double) (mid - late) / early);
+
+        // Total decay is the sum of the sequential drops
+        double totalDecay = drop1 + drop2;
+
+        return Math.min(1.0, totalDecay); // Cap at 1.0 (100% decay)
     }
 
     private double calculateArrowRandomness(GameDataRequest dto) {
@@ -118,7 +129,7 @@ public class GameMetricsService {
             timePlayed = 1.0;
         }
 
-        return dto.getBurstCount() / timePlayed;
+        return (dto.getBurstCount() / timePlayed) * 60.0; // Normalize to bursts per minute
     }
 
     private double calculateSpamIntensity(GameDataRequest dto) {
@@ -132,7 +143,7 @@ public class GameMetricsService {
             timePlayed = 1.0;
         }
 
-        return dto.getDirectionChangeCount() / timePlayed;
+        return (dto.getDirectionChangeCount() / timePlayed) * 60.0; // Normalize to changes per minute
     }
 
     private double calculateHoldImpulsivity(GameDataRequest dto) {

@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.neurovice_backend.user.dto.AssessmentStatusResponse;
-import com.project.neurovice_backend.user.dto.DiagnosisResponse;
 import com.project.neurovice_backend.user.dto.SectionSubmitRequest;
 import com.project.neurovice_backend.user.dto.SectionSubmitResponse;
 import com.project.neurovice_backend.user.dto.StartAssessmentRequest;
@@ -49,11 +48,11 @@ public class AssessmentController {
         return ResponseEntity.ok(assessmentService.getStatus(assessmentId));
     }
 
-    @GetMapping("/{assessmentId}/diagnosis")
+    /* @GetMapping("/{assessmentId}/diagnosis")
     public ResponseEntity<DiagnosisResponse> getDiagnosis(@PathVariable Integer assessmentId) {
         return ResponseEntity.ok(assessmentService.getDiagnosis(assessmentId));
-    }
-    /* 
+    } */
+ /* 
     @GetMapping("/{assessmentId}/ai-diagnosis")
     public AiDiagnosisResponse getAiDiagnosis(@PathVariable Integer assessmentId) {
         return ResponseEntity.ok(assessmentService.getAiDiagnosis(assessmentId));

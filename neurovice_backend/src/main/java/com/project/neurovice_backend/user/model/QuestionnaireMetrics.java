@@ -31,8 +31,10 @@ public class QuestionnaireMetrics {
     @Column(name = "hyperactivity")
     private Integer hyperactivity = 0;
 
-    @Column(name = "combined")
-    private Integer combined = 0;
+    // @Column(name = "combined")
+    // private Integer combined = 0;
+    @Column(name = "performance_flag")
+    private Integer performanceFlag = 0;
 
     @Column(name = "odd")
     private Integer odd = 0;

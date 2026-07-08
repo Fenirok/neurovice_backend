@@ -10,4 +10,5 @@ public class CreateUserRequest {
     private String address;
     private String relationWithChild;
     private String aadhaarId;
+    private String password;
 }

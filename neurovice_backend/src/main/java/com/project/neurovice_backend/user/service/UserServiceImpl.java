@@ -2,8 +2,11 @@ package com.project.neurovice_backend.user.service;
 
 import org.springframework.stereotype.Service;
 
+import com.project.neurovice_backend.auth.util.HashUtil;
 import com.project.neurovice_backend.user.dto.CreateUserRequest;
 import com.project.neurovice_backend.user.dto.CreateUserResponse;
+import com.project.neurovice_backend.user.dto.LoginRequest;
+import com.project.neurovice_backend.user.dto.LoginResponse;
 import com.project.neurovice_backend.user.model.users;
 import com.project.neurovice_backend.user.repository.userRepository;
 
@@ -34,9 +37,23 @@ public class UserServiceImpl implements UserService {
         user.setAddress(request.getAddress());
         user.setRelationWithChild(request.getRelationWithChild());
         user.setAddhaarId(request.getAadhaarId());
+        user.setPassword(HashUtil.hash(request.getPassword()));
 
         users savedUser = userRepository.save(user);
 
         return new CreateUserResponse(savedUser.getParentId());
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        users user = userRepository.findByEmailAddress(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found with this email"));
+
+        boolean isPasswordValid = HashUtil.verify(request.getPassword(), user.getPassword());
+        if (!isPasswordValid) {
+            throw new RuntimeException("Invalid password");
+        }
+
+        return new LoginResponse(user.getParentId(), user.getUsername(), user.getEmailAddress());
     }
 }

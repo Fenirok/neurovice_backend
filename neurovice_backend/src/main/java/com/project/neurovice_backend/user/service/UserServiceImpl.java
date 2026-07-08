@@ -1,7 +1,6 @@
 package com.project.neurovice_backend.user.service;
 
 import org.springframework.stereotype.Service;
-
 import com.project.neurovice_backend.auth.util.HashUtil;
 import com.project.neurovice_backend.user.dto.CreateUserRequest;
 import com.project.neurovice_backend.user.dto.CreateUserResponse;
@@ -9,7 +8,6 @@ import com.project.neurovice_backend.user.dto.LoginRequest;
 import com.project.neurovice_backend.user.dto.LoginResponse;
 import com.project.neurovice_backend.user.model.users;
 import com.project.neurovice_backend.user.repository.userRepository;
-
 import lombok.RequiredArgsConstructor;
 
 @Service

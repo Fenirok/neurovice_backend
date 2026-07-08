@@ -35,4 +35,7 @@ public class users {
 
     @Column(name = "addhaar_id", nullable = false, unique = true)
     private String addhaarId;
+
+    @Column(name = "password", nullable = false)
+    private String password;
 }

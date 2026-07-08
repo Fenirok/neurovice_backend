@@ -1,12 +1,10 @@
 package com.project.neurovice_backend.user.service;
 
 import org.springframework.stereotype.Service;
-
 import com.project.neurovice_backend.user.dto.CreateChildRequest;
 import com.project.neurovice_backend.user.dto.CreateChildResponse;
 import com.project.neurovice_backend.user.model.child;
 import com.project.neurovice_backend.user.repository.childRepository;
-
 import lombok.RequiredArgsConstructor;
 
 @Service

@@ -1,308 +1,393 @@
 # Questionnaire Functionality Report
 
 ## Overview
-This document provides a comprehensive explanation of the questionnaire functionality in the NeuroVice Backend project. The questionnaire system manages assessment sections, questions, and calculates diagnostic metrics based on user responses.
+
+This document provides a structured technical report of the questionnaire and assessment workflow currently implemented in the NeuroVice Backend project. The report describes the main classes, methods, data flow, and the required changes needed to align the implementation with the intended diagnostic and AI-based assessment pipeline.
 
 ---
 
-## 1. Model Classes
+## 1. QuestionnaireService Class
 
-### 1.1 `questionaires` Class
-**Package:** `com.project.neurovice_backend.model`  
-**Purpose:** Entity class representing a questionnaire section stored in the database.
+### Purpose
 
-#### Class Annotations
-- `@Entity` - Marks this class as a JPA entity
-- `@Table(name = "questionaires")` - Maps to the `questionaires` database table
-- `@Data` - Lombok annotation that generates getters, setters, toString, equals, and hashCode methods
+Contains the core business logic for retrieving questionnaire sections and determining completion status.
 
-#### Fields and Properties
+### 1.1 Method: getActiveSections()
 
-| Field Name | Type | Description | Constraints |
-|------------|------|-------------|-------------|
-| `id` | `Long` | Primary key identifier | Auto-generated, unique |
-| `sectionId` | `String` | Unique identifier for the section | Not null, unique |
-| `sectionName` | `String` | Display name of the section | Optional |
-| `description` | `String` | Description of the questionnaire section | Optional |
-| `disorderType` | `String` | Type of disorder this section assesses | Not null |
-| `questions` | `List<Map<String, Object>>` | JSON array of questions and their properties | Not null, stored as JSONB |
-| `displayOrder` | `Integer` | Order in which section appears | Optional |
-| `isActive` | `Boolean` | Whether the section is currently active | Default: true |
+Functionality
+Retrieves all questionnaire sections that are marked as active and returns them in display order. This controls what the frontend displays to the parent during assessment.
 
-#### Key Features
-- Uses PostgreSQL JSONB for flexible question storage
-- Supports dynamic question structures via `Map<String, Object>`
-- Enables soft deletion through `isActive` flag
-- Maintains display ordering for UI presentation
+Input
+None
 
----
+Output
+List<questionaires>
+→ A sorted list of active questionnaire sections.
 
-### 1.2 `QuestionnaireMetrics` Class
-**Package:** `com.project.neurovice_backend.model`  
-**Purpose:** Entity class storing calculated diagnostic metrics from completed questionnaires.
+Internal Working
 
-#### Class Annotations
-- `@Entity` - Marks this class as a JPA entity
-- `@Table(name = "questionnaire_metrics")` - Maps to the `questionnaire_metrics` database table
-- `@Data` - Lombok annotation for automatic getters/setters
+- Calls the repository to fetch all active rows
+- Orders the results by displayOrder
+- Returns the final ordered list to the controller or calling service
 
-#### Fields and Properties
+Example Code Snippet
 
-| Field Name | Type | Description | Constraints |
-|------------|------|-------------|-------------|
-| `id` | `Long` | Primary key identifier | Auto-generated |
-| `assessmentId` | `Integer` | Foreign key to assessment | Not null |
-| `childId` | `Integer` | Foreign key to child | Not null |
-| `inattention` | `Integer` | Inattention disorder score (0 or 1) | Default: 0 |
-| `hyperactivity` | `Integer` | Hyperactivity disorder score (0 or 1) | Default: 0 |
-| `combined` | `Integer` | Combined ADHD type score (0 or 1) | Default: 0 |
-| `odd` | `Integer` | Oppositional Defiant Disorder score (0 or 1) | Default: 0 |
-| `conduct` | `Integer` | Conduct disorder score (0 or 1) | Default: 0 |
-| `anxietyDepression` | `Integer` | Anxiety/Depression score (0 or 1) | Default: 0 |
-| `createdAt` | `LocalDateTime` | Timestamp of record creation | Auto-generated, read-only |
-
-#### Key Features
-- Stores binary diagnostic results (0 = negative, 1 = positive)
-- Automatically timestamped on creation
-- Linked to both assessment and child entities
-
----
-
-## 2. Repository Interfaces
-
-### 2.1 `questionairesRepository` Interface
-**Package:** `com.project.neurovice_backend.repository`  
-**Purpose:** Data access layer for questionnaire sections using Spring Data JPA.
-
-#### Interface Declaration
 ```java
-public interface questionairesRepository extends JpaRepository<questionaires, Long>
+public List<questionaires> getActiveSections() {
+    return questionnaireRepository.findAllByIsActiveTrueOrderByDisplayOrder();
+}
 ```
 
-#### Methods
+### 1.2 Method: countActiveSections()
 
-##### `findAllByIsActiveTrueOrderByDisplayOrder()`
-**Purpose:** Retrieves all active questionnaire sections ordered by display order.
+Functionality
+Counts how many questionnaire sections are currently active. This is used to decide whether the assessment has covered all required sections.
 
-**Input Parameters:** None
+Input
+None
 
-**Output:** `List<questionaires>` - List of active questionnaire sections sorted by display order
+Output
+int
+→ Total number of active questionnaire sections.
 
-**Usage:** Used to fetch questionnaires for display in the UI, ensuring only active sections are shown.
+Internal Working
 
----
+- Fetches all active sections
+- Returns the size of the list
 
-##### `findBySectionId(String sectionId)`
-**Purpose:** Finds a specific questionnaire section by its unique section ID.
+Example Code Snippet
 
-**Input Parameters:**
-- `sectionId` (String) - The unique identifier of the section to find
-
-**Output:** `Optional<questionaires>` - Optional containing the questionnaire if found, empty otherwise
-
-**Usage:** Used to validate section existence and retrieve section details during assessment submission.
-
----
-
-##### `countByIsActiveTrue()`
-**Purpose:** Counts the total number of active questionnaire sections.
-
-**Input Parameters:** None
-
-**Output:** `int` - Count of active sections
-
-**Usage:** Used to determine the total number of sections required for assessment completion.
-
----
-
-### 2.2 `QuestionnaireMetricsRepository` Interface
-**Package:** `com.project.neurovice_backend.repository`  
-**Purpose:** Data access layer for questionnaire metrics using Spring Data JPA.
-
-#### Interface Declaration
 ```java
-public interface QuestionnaireMetricsRepository extends JpaRepository<QuestionnaireMetrics, Long>
-```
-
-#### Methods
-
-##### `findByAssessmentId(Integer assessmentId)`
-**Purpose:** Retrieves questionnaire metrics for a specific assessment.
-
-**Input Parameters:**
-- `assessmentId` (Integer) - The assessment ID to find metrics for
-
-**Output:** `Optional<QuestionnaireMetrics>` - Optional containing metrics if found, empty otherwise
-
-**Usage:** Used to check if metrics already exist for an assessment before creating or updating them.
-
----
-
-## 3. Service Layer
-
-### 3.1 `QuestionnaireService` Class
-**Package:** `com.project.neurovice_backend.service`  
-**Purpose:** Business logic layer for questionnaire operations.
-
-#### Class Annotations
-- `@Service` - Marks this class as a Spring service component
-- `@RequiredArgsConstructor` - Lombok annotation that generates a constructor for final fields
-
-#### Dependencies
-- `questionairesRepository` - Injected repository for data access
-
-#### Methods
-
-##### `getActiveSections()`
-**Purpose:** Retrieves all active questionnaire sections ordered by display order.
-
-**Input Parameters:** None
-
-**Output:** `List<questionaires>` - List of active questionnaire sections
-
-**Functionality:**
-- Calls repository method to fetch active sections
-- Returns sections sorted by display order for consistent UI presentation
-
-**Usage:** Called by controller to provide questionnaires to frontend clients.
-
----
-
-##### `countActiveSections()`
-**Purpose:** Returns the count of active questionnaire sections.
-
-**Input Parameters:** None
-
-**Output:** `int` - Number of active sections
-
-**Functionality:**
-- Retrieves all active sections and returns the size of the list
-- Used to determine completion criteria for assessments
-
-**Usage:** Used by AssessmentService to check if all required sections have been completed.
-
----
-
-## 4. Controller Layer
-
-### 4.1 `QuestionnaireController` Class
-**Package:** `com.project.neurovice_backend.controller`  
-**Purpose:** REST API endpoint handler for questionnaire-related operations.
-
-#### Class Annotations
-- `@RestController` - Marks this class as a REST controller
-- `@RequestMapping("/questionaires")` - Base URL path for all endpoints in this controller
-- `@RequiredArgsConstructor` - Lombok annotation for dependency injection
-
-#### Dependencies
-- `QuestionnaireService` - Injected service for business logic
-
-#### Endpoints
-
-##### `GET /questionaires/getallquestionaires`
-**Purpose:** Retrieves all active questionnaire sections for display.
-
-**HTTP Method:** GET
-
-**Request Parameters:** None
-
-**Request Body:** None
-
-**Response:** `List<questionaires>` - JSON array of active questionnaire sections
-
-**Response Status Codes:**
-- `200 OK` - Successfully retrieved questionnaires
-
-**Functionality:**
-- Delegates to `QuestionnaireService.getActiveSections()`
-- Returns only active sections ordered by display order
-- Used by frontend to populate questionnaire forms
-
-**Example Response:**
-```json
-[
-  {
-    "id": 1,
-    "sectionId": "section_1",
-    "sectionName": "Inattention",
-    "description": "Questions about attention",
-    "disorderType": "ADHD",
-    "questions": [
-      {"q1": "Question text", "type": "scale"},
-      {"q2": "Question text", "type": "scale"}
-    ],
-    "displayOrder": 1,
-    "isActive": true
-  }
-]
+public int countActiveSections() {
+    return questionnaireRepository.findAllByIsActiveTrueOrderByDisplayOrder().size();
+}
 ```
 
 ---
 
-## 5. Integration with Assessment System
+## 2. AssessmentService Class
 
-### Questionnaire Usage in Assessment Flow
+### Purpose
 
-The questionnaire system integrates with the assessment system through the `AssessmentService`:
+Coordinates the full assessment lifecycle, including section submission, response validation, persistence of section answers, and questionnaire diagnostic computation.
 
-1. **Section Submission:** When a user submits answers for a questionnaire section, `AssessmentService.submitSection()` validates the section exists using `questionairesRepository.findBySectionId()`
+### 2.1 Method: submitSection(assessmentId, request)
 
-2. **Completion Check:** `AssessmentService` uses `QuestionnaireService.countActiveSections()` to determine if all required sections are completed
+Functionality
+Processes answers submitted for one questionnaire section and stores them in the assessment section table.
 
-3. **Diagnostic Calculation:** Upon completion, `AssessmentService.computeDiagnosis()` calculates diagnostic metrics and saves them to `QuestionnaireMetrics` via `QuestionnaireMetricsRepository`
+Input
 
-4. **Metrics Storage:** Diagnostic results (inattention, hyperactivity, combined, ODD, conduct, anxiety/depression) are stored as binary flags (0 or 1) in the `QuestionnaireMetrics` table
+- assessmentId: Integer
+- request: SectionSubmitRequest containing sectionId and answers
 
----
+Output
+SectionSubmitResponse
+→ Returns success status and whether all sections have been completed.
 
-## 6. Data Flow Summary
+Internal Working
 
+- Validates that the assessment exists
+- Validates that the requested section exists
+- Checks answer values are within the valid range of 1 to 5
+- Converts answers to JSON and stores them in assessment_sections
+- Calculates sum and average scores for the submitted section
+- Checks whether all active sections have been submitted
+- Updates assessment status to QUESTIONNAIRE_COMPLETED when all sections are done
+
+Example Code Snippet
+
+```java
+@Transactional
+public SectionSubmitResponse submitSection(Integer assessmentId, SectionSubmitRequest request) {
+    assessment assessment = assessmentRepository.findById(Long.valueOf(assessmentId))
+            .orElseThrow(() -> new NotFoundException("Assessment not found"));
+
+    questionaires questionnaire = questionnaireRepository
+            .findBySectionId(request.getSectionId())
+            .orElseThrow(() -> new NotFoundException("Section not found"));
+
+    Map<String, Integer> answers = request.getAnswers();
+    int sum = answers.values().stream().mapToInt(Integer::intValue).sum();
+    double avg = answers.values().stream().mapToInt(Integer::intValue).average().orElse(0);
+
+    return new SectionSubmitResponse(true, true);
+}
 ```
-Client Request
-    ↓
-QuestionnaireController.getAll()
-    ↓
-QuestionnaireService.getActiveSections()
-    ↓
-questionairesRepository.findAllByIsActiveTrueOrderByDisplayOrder()
-    ↓
-Database Query
-    ↓
-List<questionaires> Response
+
+### 2.2 Method: computeDiagnosis(assessmentId, childId)
+
+Functionality
+Computes questionnaire-based diagnostic counts using submitted responses.
+
+Input
+
+- assessmentId: Integer
+- childId: Integer
+
+Output
+QuestionnaireMetrics object saved in the database
+
+Internal Working
+
+- Loads all question responses from assessment_sections
+- Aggregates category counts for inattention, hyperactivity, ODD, conduct, and anxiety/depression
+- Stores the computed counts in QuestionnaireMetrics
+
+Example Code Snippet
+
+```java
+@Transactional
+public void computeDiagnosis(Integer assessmentId, Integer childId) {
+    Map<Integer, Integer> answers = loadAllQuestionAnswers(assessmentId);
+
+    int inattentionCount = countScores(answers, 1, 9, 4, 5);
+    int hyperactivityCount = countScores(answers, 10, 18, 4, 5);
+
+    QuestionnaireMetrics metrics = questionnaireMetricsRepository
+            .findByAssessmentId(assessmentId)
+            .orElse(new QuestionnaireMetrics());
+
+    metrics.setAssessmentId(assessmentId);
+    metrics.setChildId(childId);
+    metrics.setInattention(inattentionCount);
+    metrics.setHyperactivity(hyperactivityCount);
+
+    questionnaireMetricsRepository.save(metrics);
+}
 ```
 
 ---
 
-## 7. Key Design Patterns
+## 3. GameDataController Class
 
-1. **Repository Pattern:** Separation of data access logic from business logic
-2. **Service Layer Pattern:** Business logic encapsulated in service classes
-3. **RESTful API:** Standard HTTP methods for resource access
-4. **Soft Delete:** Using `isActive` flag instead of hard deletion
-5. **JSON Storage:** Flexible question structure using PostgreSQL JSONB
+### Purpose
+
+Receives game event data from the frontend and forwards it to the service layer.
+
+### 3.1 Endpoint: POST /api/game-data
+
+Functionality
+Accepts gameplay-related metrics and passes them onward for processing.
+
+Input
+JSON request body containing gameplay statistics such as click counts, arrow input counts, accuracy values, and time-related metrics.
+
+Output
+A success response indicating that the data was stored.
+
+Internal Working
+
+- Validates the incoming payload
+- Calls the game metrics service for processing
+- Returns a response to the frontend
+
+Example Code Snippet
+
+```java
+@PostMapping
+public ResponseEntity<?> receiveGameData(@RequestBody GameDataRequest data) {
+    if (data.getTotalClicks() == null || data.getArrowPressCount() == null) {
+        return ResponseEntity.badRequest().body("Invalid game data payload");
+    }
+
+    service.processAndStore(data);
+    return ResponseEntity.ok(Map.of("status", "stored"));
+}
+```
 
 ---
 
-## 8. Database Schema
+## 4. GameMetricsService Class
 
-### `questionaires` Table
-- Stores questionnaire sections with JSONB questions
-- Supports ordering and activation/deactivation
-- Unique constraint on `section_id`
+### Purpose
 
-### `questionnaire_metrics` Table
-- Stores calculated diagnostic results
-- Linked to assessments and children
-- Binary scoring system (0/1) for each disorder type
+Contains the actual business logic for computing gameplay-based behavioral indicators and saving them.
+
+### 4.1 Method: processAndStore(dto)
+
+Functionality
+Processes the raw game payload, calculates derived behavioral metrics, and stores them in the database.
+
+Input
+GameDataRequest object containing gameplay values
+
+Output
+Saves an ADHDRawGameMetrics record in the database.
+
+Internal Working
+
+- Sets the entity identifiers
+- Maps request fields into raw metric columns
+- Calculates base scores such as accuracy, attention decay, randomness, burst intensity, spam intensity, direction change rate, and hold impulsivity
+- Computes higher-level indices such as hyperactivity, inattention, ADHD composite, ODD index, conduct index, and anxiety index
+- Saves the record and triggers final metric computation
+
+### 4.2 Supporting Calculations
+
+The service includes several internal metric calculation methods:
+
+- calculateAccuracy()
+- calculateAttentionDecay()
+- calculateArrowRandomness()
+- calculateBurstIntensity()
+- calculateSpamIntensity()
+- calculateDirectionChangeRate()
+- calculateHoldImpulsivity()
+- calculateHyperactivity()
+- calculateInattention()
+- calculateADHDComposite()
+- calculateODDIndex()
+- calculateConductIndex()
+- calculateAnxietyIndex()
+
+Example Code Snippet
+
+```java
+private double calculateHyperactivity(ADHDRawGameMetrics entity) {
+    double spam = entity.getSpamIntensity();
+    double burst = entity.getBurstIntensity();
+    double direction = entity.getDirectionChangeRate();
+    double holdImpulsivity = entity.getHoldImpulsivity();
+
+    return 0.35 * spam
+            + 0.25 * burst
+            + 0.25 * direction
+            + 0.15 * holdImpulsivity;
+}
+```
 
 ---
 
-## Conclusion
+## 5. ChildFinalMetricsService Class
 
-The questionnaire functionality provides a flexible system for managing assessment sections, questions, and diagnostic metrics. The architecture follows Spring Boot best practices with clear separation of concerns across Model, Repository, Service, and Controller layers.
+### Purpose
 
+Combines questionnaire and game metrics to generate final diagnostic indicators for a child.
 
+### 5.1 Method: computeAndStoreFinalMetrics(childId)
 
+Functionality
+Computes a final set of behavioral metrics using the latest gameplay session, prior session history, and questionnaire-derived values.
 
+Input
+childId: Long
 
+Output
+Saves a final metrics record for the child.
 
+Internal Working
+
+- Loads all game sessions for the child
+- Takes the latest session as the current sample
+- Uses history for trend calculation
+- Retrieves questionnaire-based values from the assessment section data
+- Applies a weighted formula to produce final inattention, hyperactivity, ADHD composite, ODD, conduct, and anxiety metrics
+- Persists the result into the final metrics table
+
+Example Code Snippet
+
+```java
+private double calculateFinalMetric(Double questionnaire, Double latest, Double historyAvg) {
+    if (questionnaire == null) questionnaire = 0.0;
+    if (latest == null) latest = 0.0;
+    if (historyAvg == null) historyAvg = 0.0;
+
+    double trend = latest - historyAvg;
+
+    return 0.4 * questionnaire
+            + 0.3 * latest
+            + 0.2 * historyAvg
+            + 0.1 * trend;
+}
+```
+
+---
+
+## 6. AnalysisService Class
+
+### Purpose
+
+Executes the final analysis step by sending the computed feature set to the AI service for risk prediction.
+
+### 6.1 Method: run(childId)
+
+Functionality
+Builds a feature map from the final metrics and sends it to the AI prediction endpoint.
+
+Input
+childId: Long
+
+Output
+AnalysisResponse containing the predicted risk score.
+
+Internal Working
+
+- Loads the final metrics for the child
+- Converts the metrics into a feature dictionary
+- Sends the feature map to the AI service
+- Stores the result in the ADHD analysis table
+
+Example Code Snippet
+
+```java
+Map<String, Object> features = new HashMap<>();
+features.put("adhd_composite", nz(metrics.getAdhdComposite()));
+features.put("inattention", nz(metrics.getInattention()));
+features.put("hyperactivity", nz(metrics.getHyperactivity()));
+features.put("anxiety_index", nz(metrics.getAnxietyIndex()));
+features.put("conduct_index", nz(metrics.getConductIndex()));
+features.put("odd_index", nz(metrics.getOddIndex()));
+
+Double risk = aiService.getAdhdRisk(features);
+```
+
+---
+
+## 7. Current Implementation Gaps and Required Changes
+
+### 7.1 Questionnaire Logic
+
+The current implementation partially covers questionnaire flow, but the real business logic is still spread between AssessmentService and QuestionnaireService. The recommended change is to move full submission, validation, and diagnosis responsibilities into QuestionnaireService so that the service layer is cleaner and more maintainable.
+
+### 7.2 Diagnosis Rules
+
+The current computeDiagnosis() method calculates raw counts, but the implementation does not yet fully apply the detailed Vanderbilt-style or report-based diagnosis thresholds. The system should explicitly determine:
+
+- Inattention
+- Hyperactivity
+- Combined ADHD
+- ODD
+- Conduct
+- Anxiety/Depression
+
+### 7.3 Game Metric Context
+
+The current game flow uses a hardcoded child ID and does not fully use the assessment context. The system should persist the actual childId and assessmentId associated with each gameplay session.
+
+### 7.4 AI Pipeline Structure
+
+The report-style architecture expects dedicated components such as:
+
+- MetricExtractionUtility
+- DataPreprocessor
+- DisorderModelManager
+- PredictionService
+
+These are not yet implemented as separate classes in the current codebase. The analysis flow should be reorganized into a formal pipeline for preprocessing, prediction, and final result selection.
+
+### 7.5 Final Metrics Integration
+
+The final metrics service should use the questionnaire diagnosis results more directly rather than relying only on section-level averages. This will make the final child diagnosis more consistent with the intended assessment logic.
+
+---
+
+## 8. Summary
+
+The current backend already contains the main building blocks for questionnaire handling, game metric computation, and AI-based analysis. However, the workflow is still partially implemented and needs further refinement in terms of service responsibility, diagnosis logic, assessment-aware game storage, and structured AI prediction processing.
+
+---
+
+## 9. Conclusion
+
+The system has a strong foundation for questionnaire-based assessment and game-driven behavioral analysis. To fully meet the intended architecture described in the report, the implementation should be refactored so that questionnaire scoring, game metric extraction, and AI prediction are handled through a clearer and more modular pipeline.

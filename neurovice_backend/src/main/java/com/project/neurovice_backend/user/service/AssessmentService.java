@@ -141,6 +141,7 @@ public class AssessmentService {
             assessment.setCompletedAt(LocalDateTime.now());
             assessmentRepository.save(assessment);
             // No diagnosis computation here - will happen after game completion
+            computeDiagnosis(assessmentId);
         }
 
         return new SectionSubmitResponse(true, allSectionsCompleted);
@@ -180,7 +181,11 @@ public class AssessmentService {
      * 10. Called automatically when all sections are completed.
      */
     @Transactional
-    public void computeDiagnosis(Integer assessmentId, Integer childId) {
+    public void computeDiagnosis(Integer assessmentId) {
+        assessment assessment = assessmentRepository
+        .findById(Long.valueOf(assessmentId))
+        .orElseThrow(() -> new NotFoundException("Assessment not found"));
+        Integer childId = assessment.getChildId();
         Map<Integer, Integer> answers = loadAllQuestionAnswers(assessmentId);
 
         // Count scores (2 or 3) for each disorder category

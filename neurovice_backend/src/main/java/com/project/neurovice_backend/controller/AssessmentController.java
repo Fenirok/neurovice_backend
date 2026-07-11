@@ -48,6 +48,12 @@ public class AssessmentController {
         return ResponseEntity.ok(assessmentService.getStatus(assessmentId));
     }
 
+    @PostMapping("/{assessmentId}/compute-questionnaire-metrics")
+    public ResponseEntity<Void> computeQuestionnaireMetrics(@PathVariable Integer assessmentId) {
+        assessmentService.computeDiagnosis(assessmentId);
+        return ResponseEntity.ok().build();
+    }
+
     /* @GetMapping("/{assessmentId}/diagnosis")
     public ResponseEntity<DiagnosisResponse> getDiagnosis(@PathVariable Integer assessmentId) {
         return ResponseEntity.ok(assessmentService.getDiagnosis(assessmentId));
@@ -56,5 +62,5 @@ public class AssessmentController {
     @GetMapping("/{assessmentId}/ai-diagnosis")
     public AiDiagnosisResponse getAiDiagnosis(@PathVariable Integer assessmentId) {
         return ResponseEntity.ok(assessmentService.getAiDiagnosis(assessmentId));
-    }*/
+    } */
 }

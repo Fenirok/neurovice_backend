@@ -4,14 +4,17 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.project.neurovice_backend.user.dto.AnalysisResponse;
 import com.project.neurovice_backend.user.exception.NotFoundException;
 import com.project.neurovice_backend.user.model.ADHDAnalysisResult;
-import com.project.neurovice_backend.user.model.ADHDFinalMetrics;
+import com.project.neurovice_backend.user.model.ADHDRawGameMetrics;
+import com.project.neurovice_backend.user.model.QuestionnaireMetrics;
 import com.project.neurovice_backend.user.repository.ADHDAnalysisRepository;
-import com.project.neurovice_backend.user.repository.ChildFinalMetricsRepository;
+import com.project.neurovice_backend.user.repository.GameMetricsRepository;
+import com.project.neurovice_backend.user.repository.QuestionnaireMetricsRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,47 +22,94 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AnalysisService {
 
-    private final ChildFinalMetricsRepository childFinalMetricsRepository;
+    @Autowired
+    private final GameMetricsRepository gameMetricsRepository;
+    private final QuestionnaireMetricsRepository questionnaireMetricsRepository;
+    // private final QuestionnaireMetrics questionnaireMetrics;
     private final AiService aiService;
     private final ADHDAnalysisRepository adhdAnalysisRepository;
+    private final RiskFusionService riskFusionService;
+
+    // Static global variances derived from your Colab dataset
+    private static final double GLOBAL_QUEST_VARIANCE = 40.0;
+    private static final double GLOBAL_GAME_VARIANCE = 160.0;
 
     public AnalysisResponse run(Long childId) {
-        ADHDFinalMetrics metrics = childFinalMetricsRepository
+        // ==========================================
+        // STEP 1: Fetch and Process Questionnaire Data
+        // ==========================================
+        QuestionnaireMetrics metrics = questionnaireMetricsRepository
                 .findByChildId(childId)
                 .orElseThrow(() -> new NotFoundException("Final metrics not found for child"));
 
-        Map<String, Object> features = new HashMap<>();
-        features.put("adhd_composite", nz(metrics.getAdhdComposite()));
-        features.put("inattention", nz(metrics.getInattention()));
-        features.put("hyperactivity", nz(metrics.getHyperactivity()));
-        features.put("anxiety_index", nz(metrics.getAnxietyIndex()));
-        features.put("conduct_index", nz(metrics.getConductIndex()));
-        features.put("odd_index", nz(metrics.getOddIndex()));
-        // features.put("session_count", metrics.getSessionCount());
+        Map<String, Object> questFeatures = new HashMap<>();
+        questFeatures.put("inattention", nz(metrics.getInattention()));
+        questFeatures.put("hyperactivity", nz(metrics.getHyperactivity()));
+        questFeatures.put("odd", nz(metrics.getOdd()));
+        questFeatures.put("conduct", nz(metrics.getConduct()));
+        questFeatures.put("anxiety", nz(metrics.getAnxiety()));
+        questFeatures.put("performance_flag", nz(metrics.getPerformanceFlag()));
 
-        System.out.println("ADHD Composite: " + metrics.getAdhdComposite());
-        System.out.println("Inattention: " + metrics.getInattention());
-        System.out.println("Hyperactivity: " + metrics.getHyperactivity());
-        System.out.println("Anxiety Index: " + metrics.getAnxietyIndex());
-        System.out.println("Conduct Index: " + metrics.getConductIndex());
-        System.out.println("ODD Index: " + metrics.getOddIndex());
+        Double rawQuestRisk = aiService.getQuestRisk(questFeatures);
+        double finalRawQuestRisk = rawQuestRisk == null ? 0.0 : rawQuestRisk;
 
-        Double risk = aiService.getAdhdRisk(features);
-        System.out.println("Risk returned from AI service: " + risk);
-        double r = risk == null ? 0.0 : risk;
+        // ==========================================
+        // STEP 2: Fetch and Process Game Data (TODO)
+        // ==========================================
+        ADHDRawGameMetrics gameMetrics = gameMetricsRepository
+                .findByChildId(childId)
+                .orElseThrow(() -> new NotFoundException("Game metrics not found for child"));
 
+        Map<String, Object> gameFeatures = new HashMap<>();
+        gameFeatures.put("accuracy", nz(gameMetrics.getAccuracy()));
+        gameFeatures.put("attention_decay", nz(gameMetrics.getAttentionDecay()));
+        gameFeatures.put("randomness", nz(gameMetrics.getRandomness()));
+        gameFeatures.put("burst_intensity", nz(gameMetrics.getBurstIntensity()));
+        gameFeatures.put("spam_intensity", nz(gameMetrics.getSpamIntensity()));
+        gameFeatures.put("direction_change_rate", nz(gameMetrics.getDirectionChangeRate()));
+        gameFeatures.put("hold_impulsivity", nz(gameMetrics.getHoldImpulsivity()));
+
+        Double finalRawGameRisk = aiService.getGameRisk(gameFeatures); // Assuming you add this to AiService
+        // double finalRawGameRisk = 75.0; // MOCK DATA until DB is wired up
+
+        // ==========================================
+        // STEP 3: Fetch Historical State (TODO)
+        // ==========================================
+        // TODO: Fetch the child's last known game score and overall risk from DB
+        double previousRawGameScore = 50.0; // MOCK DATA
+        Double lastFinalRisk = 65.0;        // MOCK DATA (Can be null if first time)
+
+        // ==========================================
+        // STEP 4: Execute the Temporal Math Engine
+        // ==========================================
+        double finalSmoothedRisk = riskFusionService.generateFinalLongitudinalRisk(
+                finalRawGameRisk,
+                previousRawGameScore,
+                finalRawQuestRisk,
+                GLOBAL_GAME_VARIANCE,
+                GLOBAL_QUEST_VARIANCE,
+                lastFinalRisk
+        );
+
+        // ==========================================
+        // STEP 5: Save State and Return
+        // ==========================================
         ADHDAnalysisResult result = new ADHDAnalysisResult();
         result.setChildId(childId);
-        result.setScore(r);
+        result.setScore(finalSmoothedRisk);
         result.setLastUpdated(LocalDateTime.now());
-
         adhdAnalysisRepository.save(result);
-        System.out.println("Saved analysis result to DB");
 
-        return new AnalysisResponse(r);
+        System.out.println("Saved final temporal analysis result to DB: " + finalSmoothedRisk);
+
+        return new AnalysisResponse(finalSmoothedRisk);
     }
 
     private double nz(Double v) {
         return v == null ? 0.0 : v;
+    }
+
+    private Integer nz(Integer v) {
+        return v == null ? 0 : v;
     }
 }

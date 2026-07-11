@@ -188,7 +188,7 @@ public class AssessmentService {
         int hyperactivityCount = countScores(answers, 10, 18, 4, 5); // Q10-Q18: 6+ required
         int oddCount = countScores(answers, 19, 26, 4, 5); // Q19-Q26: 4+ required
         int conductCount = countScores(answers, 27, 40, 4, 5); // Q27-Q40: 3+ required
-        int anxDepCount = countScores(answers, 41, 47, 4, 5); // Q41-Q47: 3+ required
+        int anxietyCount = countScores(answers, 41, 47, 4, 5); // Q41-Q47: 3+ required
 
         // Check performance questions (Q48-Q55): any score 4 or 5 indicates impairment
         int performanceFlag = countScores(answers, 48, 55, 4, 5);
@@ -199,7 +199,7 @@ public class AssessmentService {
         // boolean combined = (inattentive && hyperactive);
         // boolean odd = (oddCount >= 4 && performanceFlag);
         // boolean conduct = (conductCount >= 3 && performanceFlag);
-        // boolean anxietyDepression = (anxDepCount >= 3 && performanceFlag);
+        // boolean anxietyDepression = (anxietyCount >= 3 && performanceFlag);
         // Save or update metrics
         QuestionnaireMetrics metrics = questionnaireMetricsRepository
                 .findByAssessmentId(assessmentId)
@@ -212,7 +212,7 @@ public class AssessmentService {
         // metrics.setCombined(combined);
         metrics.setOdd(oddCount);
         metrics.setConduct(conductCount);
-        metrics.setAnxietyDepression(anxDepCount);
+        metrics.setAnxiety(anxietyCount);
         metrics.setPerformanceFlag(performanceFlag);
 
         questionnaireMetricsRepository.save(metrics);

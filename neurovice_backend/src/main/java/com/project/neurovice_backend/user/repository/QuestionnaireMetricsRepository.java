@@ -11,4 +11,6 @@ import com.project.neurovice_backend.user.model.QuestionnaireMetrics;
 public interface QuestionnaireMetricsRepository extends JpaRepository<QuestionnaireMetrics, Long> {
 
     Optional<QuestionnaireMetrics> findByAssessmentId(Integer assessmentId);
+
+    Optional<QuestionnaireMetrics> findByChildId(Long childId);
 }

@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AnalysisResponse {
 
-    private double risk;
+    private double finalRiskScore;
 }

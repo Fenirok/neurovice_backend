@@ -42,8 +42,8 @@ public class QuestionnaireMetrics {
     @Column(name = "conduct")
     private Integer conduct = 0;
 
-    @Column(name = "anxiety_depression")
-    private Integer anxietyDepression = 0;
+    @Column(name = "anxiety")
+    private Integer anxiety = 0;
 
     @Column(name = "created_at", updatable = false, insertable = false)
     private LocalDateTime createdAt;

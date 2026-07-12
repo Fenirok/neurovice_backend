@@ -227,6 +227,10 @@ public class AssessmentService {
      * Loads all Q1-Q55 answers from all sections for this assessment. Returns a
      * map keyed by question number (1-55).
      */
+    /**
+     * Loads all Q1-Q55 answers from all sections for this assessment. Returns a
+     * map keyed by question number (1-55).
+     */
     private Map<Integer, Integer> loadAllQuestionAnswers(Integer assessmentId) {
         List<assessment_sections> sections = assessmentSectionsRepository.findByAssessmentId(assessmentId);
         Map<Integer, Integer> allAnswers = new HashMap<>();
@@ -245,14 +249,19 @@ public class AssessmentService {
                 Iterator<String> fieldNames = node.fieldNames();
                 while (fieldNames.hasNext()) {
                     String key = fieldNames.next();
-                    if (key.toLowerCase().startsWith("q")) {
-                        try {
-                            int questionNum = Integer.parseInt(key.substring(1));
-                            int answerValue = node.get(key).asInt();
-                            allAnswers.put(questionNum, answerValue);
-                        } catch (NumberFormatException e) {
-                            // Skip invalid question keys
+                    try {
+                        int questionNum;
+                        // Handle both "q1" and "1" formats
+                        if (key.toLowerCase().startsWith("q")) {
+                            questionNum = Integer.parseInt(key.substring(1));
+                        } else {
+                            questionNum = Integer.parseInt(key);
                         }
+                        
+                        int answerValue = node.get(key).asInt();
+                        allAnswers.put(questionNum, answerValue);
+                    } catch (NumberFormatException e) {
+                        // Skip invalid question keys (e.g., if there are non-numeric keys in the JSON)
                     }
                 }
             } catch (Exception e) {

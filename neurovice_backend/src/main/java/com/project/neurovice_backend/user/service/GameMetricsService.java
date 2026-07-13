@@ -7,25 +7,50 @@ import org.springframework.stereotype.Service;
 
 import com.project.neurovice_backend.user.dto.GameDataRequest;
 import com.project.neurovice_backend.user.model.ADHDRawGameMetrics;
+import com.project.neurovice_backend.user.model.QuestionnaireMetrics;
 import com.project.neurovice_backend.user.repository.GameMetricsRepository;
+import com.project.neurovice_backend.user.repository.QuestionnaireMetricsRepository;
 
 @Service
 public class GameMetricsService {
 
     private final GameMetricsRepository repository;
+    private final QuestionnaireMetricsRepository questionnaireMetricsRepository;
     @Autowired
     private ChildFinalMetricsService childFinalMetricsService;
 
-    public GameMetricsService(GameMetricsRepository repository) {
+    public GameMetricsService(GameMetricsRepository repository, QuestionnaireMetricsRepository questionnaireMetricsRepository) {
         this.repository = repository;
+        this.questionnaireMetricsRepository = questionnaireMetricsRepository;
     }
 
     public void processAndStore(GameDataRequest dto) {
 
+        Long activeChildId;
+        /* if (dto.getChildId() == null) {
+            QuestionnaireMetrics latestQuestionnaire = questionnaireMetricsRepository
+                    .findFirstByOrderByIdDesc()
+                    .orElseThrow(() -> new IllegalStateException("Demo Error: No questionnaire data found in DB. Please complete the questionnaire first!"));
+
+            // Assuming your childId is an Integer in QuestionnaireMetrics, convert it to Long if necessary
+            activeChildId = latestQuestionnaire.getChildId().longValue();
+
+            System.out.println("⚠️ DEMO MODE ACTIVE: Autonomously routing game data to latest Child ID: " + activeChildId);
+        } else {
+            activeChildId = 1L;
+        } */
+
+        QuestionnaireMetrics latestQuestionnaire = questionnaireMetricsRepository
+                .findFirstByOrderByIdDesc()
+                .orElseThrow(() -> new IllegalStateException("Demo Error: No questionnaire data found in DB. Please complete the questionnaire first!"));
+
+        // Assuming your childId is an Integer in QuestionnaireMetrics, convert it to Long if necessary
+        activeChildId = latestQuestionnaire.getChildId().longValue();
+
         ADHDRawGameMetrics entity = new ADHDRawGameMetrics();
 
         // SET IDENTIFIERS FIRST
-        entity.setChildId(1L);
+        entity.setChildId(activeChildId);
         entity.setGameId("ADHD_GAME_1");
         entity.setSessionId("sess_" + System.currentTimeMillis());
 
@@ -74,11 +99,8 @@ public class GameMetricsService {
 
         repository.save(entity);
 
-        // TEMP: childId is always 1
-        Long childId = 1L;
-
         // 🔥 Trigger final metrics computation
-        childFinalMetricsService.computeAndStoreFinalMetrics(childId);
+        childFinalMetricsService.computeAndStoreFinalMetrics(activeChildId);
     }
 
     // ---------- BASE METRICS ----------

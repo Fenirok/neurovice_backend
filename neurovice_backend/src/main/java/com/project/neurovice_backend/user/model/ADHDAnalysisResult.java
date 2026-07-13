@@ -32,6 +32,9 @@ public class ADHDAnalysisResult {
     @Column(name = "score")
     private Double score;
 
+    @Column(name = "raw_game_score")
+    private Double rawGameScore;
+
     @Column(name = "last_updated", nullable = false)
     private LocalDateTime lastUpdated;
 

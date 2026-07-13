@@ -13,4 +13,6 @@ public interface QuestionnaireMetricsRepository extends JpaRepository<Questionna
     Optional<QuestionnaireMetrics> findByAssessmentId(Integer assessmentId);
 
     Optional<QuestionnaireMetrics> findByChildId(Long childId);
+
+    Optional<QuestionnaireMetrics> findFirstByOrderByIdDesc();
 }

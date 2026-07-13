@@ -113,6 +113,8 @@ public class AnalysisService {
         ADHDAnalysisResult result = new ADHDAnalysisResult();
         result.setChildId(childId);
         result.setScore(finalSmoothedRisk);
+        result.setRawGameScore(finalRawGameRisk);
+        result.setPreviousFinalRisk(lastFinalRisk);
         result.setLastUpdated(LocalDateTime.now());
         adhdAnalysisRepository.save(result);
 

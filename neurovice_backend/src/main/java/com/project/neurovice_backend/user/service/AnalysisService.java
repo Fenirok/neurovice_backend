@@ -49,7 +49,7 @@ public class AnalysisService {
         questFeatures.put("odd", nz(metrics.getOdd()));
         questFeatures.put("conduct", nz(metrics.getConduct()));
         questFeatures.put("anxiety", nz(metrics.getAnxiety()));
-        questFeatures.put("performance_flag", nz(metrics.getPerformanceFlag()));
+        questFeatures.put("performance", nz(metrics.getPerformanceFlag()));
 
         Double rawQuestRisk = aiService.getQuestRisk(questFeatures);
         double finalRawQuestRisk = rawQuestRisk == null ? 0.0 : rawQuestRisk;
@@ -63,12 +63,12 @@ public class AnalysisService {
 
         Map<String, Object> gameFeatures = new HashMap<>();
         gameFeatures.put("accuracy", nz(gameMetrics.getAccuracy()));
-        gameFeatures.put("attention_decay", nz(gameMetrics.getAttentionDecay()));
+        gameFeatures.put("attentionDecay", nz(gameMetrics.getAttentionDecay()));
         gameFeatures.put("randomness", nz(gameMetrics.getRandomness()));
-        gameFeatures.put("burst_intensity", nz(gameMetrics.getBurstIntensity()));
-        gameFeatures.put("spam_intensity", nz(gameMetrics.getSpamIntensity()));
-        gameFeatures.put("direction_change_rate", nz(gameMetrics.getDirectionChangeRate()));
-        gameFeatures.put("hold_impulsivity", nz(gameMetrics.getHoldImpulsivity()));
+        gameFeatures.put("burstIntensity", nz(gameMetrics.getBurstIntensity()));
+        gameFeatures.put("spamIntensity", nz(gameMetrics.getSpamIntensity()));
+        gameFeatures.put("directionChangeRate", nz(gameMetrics.getDirectionChangeRate()));
+        gameFeatures.put("holdImpulsivity", nz(gameMetrics.getHoldImpulsivity()));
 
         Double finalRawGameRisk = aiService.getGameRisk(gameFeatures); // Assuming you add this to AiService
         // double finalRawGameRisk = 75.0; // MOCK DATA until DB is wired up

@@ -3,6 +3,7 @@ package com.project.neurovice_backend.user.service;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -73,11 +74,26 @@ public class AnalysisService {
         // double finalRawGameRisk = 75.0; // MOCK DATA until DB is wired up
 
         // ==========================================
-        // STEP 3: Fetch Historical State (TODO)
+        // STEP 3: Fetch Historical State
         // ==========================================
-        // TODO: Fetch the child's last known game score and overall risk from DB
-        double previousRawGameScore = 50.0; // MOCK DATA
-        Double lastFinalRisk = 65.0;        // MOCK DATA (Can be null if first time)
+        double previousRawGameScore;
+        Double lastFinalRisk = null;        // null if first time
+
+        // Query the DB for the child's most recent session using the new repository method
+        Optional<ADHDAnalysisResult> historicalData = adhdAnalysisRepository
+                .findFirstByChildIdOrderByLastUpdatedDesc(childId);
+
+        if (historicalData.isPresent()) {
+            ADHDAnalysisResult pastResult = historicalData.get();
+            // Get the final smoothed score from their last session
+            lastFinalRisk = pastResult.getScore();
+            // Get the raw game score from their last session
+            previousRawGameScore = nz(pastResult.getRawGameScore());
+        } else {
+            // First-time player: Use today's raw game score as the baseline 
+            // to prevent an artificial momentum penalty on day one.
+            previousRawGameScore = finalRawGameRisk;
+        }
 
         // ==========================================
         // STEP 4: Execute the Temporal Math Engine

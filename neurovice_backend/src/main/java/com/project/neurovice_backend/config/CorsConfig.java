@@ -12,6 +12,8 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins(
                         "https://neurovice.vercel.app",
+                        "https://neurovice.netlify.app/",
+                        "https://finalyear-bay.vercel.app/",
                         "http://localhost:5173",
                         "http://localhost:3000",
                         "https://html-classic.itch.zone"
